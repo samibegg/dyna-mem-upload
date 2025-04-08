@@ -1,0 +1,95 @@
+[
+  {
+    "$project": {
+      "symbol": "$Symbol",
+      "option_code": "$Option Code",
+      "expiration_code": "$Exp",
+      "strike_price": "$Strike",
+      "call_or_put": "$Type",
+      "quantity": "$Qty",
+      "trade_price": "$Trade Price",
+      "multiplier": {
+        "$toInt": "50"
+      }
+    }
+  },
+  {
+    "$match": {
+      "quantity": {
+        "$ne": "",
+        "$exists": true
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "quantity_int": {
+        "$toInt": "$quantity"
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "strike_price_int": {
+        "$toInt": "$strike_price"
+      }
+    }
+  },
+  {
+    "$lookup":
+      {
+        "from": "expirations_calendar",
+        "localField": "expiration_code",
+        "foreignField": "exp",
+        "as": "exp_cal_obj"
+      }
+  },
+  {
+    "$addFields":
+      {
+        "expiration_date": {
+          "$arrayElemAt": [
+            {
+              "$map": {
+                "input": "$exp_cal_obj",
+                "as": "exp_cal",
+                "in": "$$exp_cal.exp_date"
+              }
+            },
+            0
+          ]
+        }
+      }
+  },
+  {
+    "$project": {
+      "exp_cal_obj": 0
+    }
+  },
+  {
+    "$addFields": {
+      "expiration_date_time_ISO": {
+        "$dateFromString": {
+          "dateString": {
+            "$concat": [
+              {
+                "$ifNull": [
+                  "$expiration_date",
+                  "2050-01-01"
+                ]
+              },
+              "T",
+              "16:00:00"
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "$out": {
+      "db": "trades",
+      "coll": "processed_futures_options"
+    }
+  }
+]

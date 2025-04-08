@@ -1,0 +1,31 @@
+[
+  {
+    "$project":
+      {
+        "orderId": "$orderId",
+        "option_code": "$option_code",
+        "execution_date": "$execution_date",
+        "execution_time": "$execution_time",
+        "execution_date_time_ISO":
+          "$execution_date_time_ISO",
+        "spread": "$spread",
+        "buy_or_sell": "$buy_or_sell",
+        "quantity": "$quantity",
+        "quantity_int": "$quantity_int",
+        "open_or_close": "$open_or_close",
+        "market_perspective": "$market_perspective",
+        "premium_of_leg": "$premium_of_leg",
+        "calculated_total_leg_premium":
+          "$calculated_total_leg_premium",
+        "days_to_expire_from_execution":
+          "$days_to_expire_from_execution"
+      }
+  },
+  {
+    "$out":
+      {
+        "db": "trades",
+        "coll": "option_lifecycle"
+      }
+  }
+]

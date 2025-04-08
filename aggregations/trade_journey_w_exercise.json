@@ -1,0 +1,56 @@
+[
+  {
+    "$lookup": {
+      "from": "calculate_exercise_value",
+      "localField": "_id",
+      "foreignField": "_id",
+      "as": "ctev_array"
+    }
+  },
+  {
+    "$addFields": {
+      "calculated_total_exercise_value": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              {
+                "$size": "$ctev_array"
+              },
+              0
+            ]
+          },
+          "then": 0,
+          "else": {
+            "$arrayElemAt": [
+              {
+                "$map": {
+                  "input": "$ctev_array",
+                  "as": "ctev",
+                  "in": "$$ctev.total_exercise_value"
+                }
+              },
+              0
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "$sort":
+      {
+        "calculated_total_exercise_value": 1
+      }
+  },
+  {
+    "$project": {
+      "ctev_array": 0
+    }
+  },
+  {
+    "$out": {
+      "db": "trades",
+      "coll": "trade_journeys"
+    }
+  }
+]

@@ -1,0 +1,393 @@
+[
+  {
+    "$project":
+      {
+        "orderId": "$orderId",
+        "execution_date": "$Exec Date",
+        "execution_time": "$Exec Time",
+        "spread": "$Spread",
+        "buy_or_sell": "$Side",
+        "quantity": "$Qty",
+        "open_or_close": "$Pos Effect",
+        "option_symbol": "$Symbol",
+        "expiration_code": "$Exp",
+        "strike_price": "$Strike",
+        "call_or_put": "$Type",
+        "premium_of_leg": "$Price"
+      }
+  },
+  {
+    "$addFields":
+      {
+        "calculated_total_leg_premium": {
+          "$multiply": [
+            {
+              "$toDouble": "$premium_of_leg"
+            },
+            {
+              "$toDouble": "$quantity"
+            },
+            -50
+          ]
+        }
+      }
+  },
+  {
+    "$addFields": {
+      "quantity_int": {
+        "$toInt": "$quantity"
+      }
+    }
+  },
+  {
+    "$addFields":
+      {
+        "calculated_total_leg_premium": {
+          "$round": [
+            "$calculated_total_leg_premium",
+            2
+          ]
+        }
+      }
+  },
+  {
+    "$addFields":
+      {
+        "option_code": {
+          "$concat": [
+            "$expiration_code",
+            "$strike_price",
+            {
+              "$substrBytes": ["$call_or_put", 0, 1]
+            }
+          ]
+        }
+      }
+  },
+  {
+    "$addFields":
+      {
+        "open_or_close": {
+          "$substrBytes": ["$open_or_close", 3, 5]
+        }
+      }
+  },
+  {
+    "$lookup":
+      {
+        "from": "expirations_calendar",
+        "localField": "expiration_code",
+        "foreignField": "exp",
+        "as": "exp_cal_obj"
+      }
+  },
+  {
+    "$addFields":
+      {
+        "expiration_date": {
+          "$arrayElemAt": [
+            {
+              "$map": {
+                "input": "$exp_cal_obj",
+                "as": "exp_cal",
+                "in": "$$exp_cal.exp_date"
+              }
+            },
+            0
+          ]
+        }
+      }
+  },
+  {
+    "$addFields":
+      {
+        "execution_date_time_ISO": {
+          "$dateFromString": {
+            "dateString": {
+              "$concat": [
+                {
+                  "$ifNull": ["$execution_date", ""]
+                },
+                "T",
+                {
+                  "$ifNull": [
+                    "$execution_time",
+                    "00:00:00"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "expiration_date_time_ISO": {
+          "$dateFromString": {
+            "dateString": {
+              "$concat": [
+                {
+                  "$ifNull": [
+                    "$expiration_date",
+                    "2050-01-01"
+                  ]
+                },
+                "T",
+                "16:00:00"
+              ]
+            }
+          }
+        }
+      }
+  },
+  {
+    "$addFields":
+      {
+        "days_to_expire_from_execution": {
+          "$dateDiff": {
+            "startDate": "$execution_date_time_ISO",
+            "endDate": "$expiration_date_time_ISO",
+            "unit": "day"
+          }
+        }
+      }
+  },
+  {
+    "$project":
+      {
+        "orderId": "$orderId",
+        "execution_date": "$execution_date",
+        "execution_time": "$execution_time",
+        "execution_date_time_ISO":
+          "$execution_date_time_ISO",
+        "spread": "$spread",
+        "buy_or_sell": "$buy_or_sell",
+        "quantity": "$quantity",
+        "quantity_int": "$quantity_int",
+        "open_or_close": "$open_or_close",
+        "option_symbol": "$option_symbol",
+        "expiration_code": "$expiration_code",
+        "strike_price": "$strike_price",
+        "call_or_put": "$call_or_put",
+        "premium_of_leg": "$premium_of_leg",
+        "calculated_total_leg_premium":
+          "$calculated_total_leg_premium",
+        "option_code": "$option_code",
+        "expiration_date": "$expiration_date",
+        "expiration_date_time_ISO":
+          "$expiration_date_time_ISO",
+        "days_to_expire_from_execution":
+          "$days_to_expire_from_execution"
+      }
+  },
+  {
+    "$addFields": {
+      "market_perspective": {
+        "$cond": {
+          "if": {
+            "$and": [
+              {
+                "$eq": ["$buy_or_sell", "BUY"]
+              },
+              {
+                "$eq": ["$call_or_put", "CALL"]
+              },
+              {
+                "$eq": ["$open_or_close", "OPEN"]
+              }
+            ]
+          },
+          "then": "BULL",
+          "else": {
+            "$cond": {
+              "if": {
+                "$and": [
+                  {
+                    "$eq": ["$buy_or_sell", "BUY"]
+                  },
+                  {
+                    "$eq": ["$call_or_put", "CALL"]
+                  },
+                  {
+                    "$eq": [
+                      "$open_or_close",
+                      "CLOSE"
+                    ]
+                  }
+                ]
+              },
+              "then": "BULL",
+              "else": {
+                "$cond": {
+                  "if": {
+                    "$and": [
+                      {
+                        "$eq": [
+                          "$buy_or_sell",
+                          "BUY"
+                        ]
+                      },
+                      {
+                        "$eq": [
+                          "$call_or_put",
+                          "PUT"
+                        ]
+                      },
+                      {
+                        "$eq": [
+                          "$open_or_close",
+                          "OPEN"
+                        ]
+                      }
+                    ]
+                  },
+                  "then": "BEAR",
+                  "else": {
+                    "$cond": {
+                      "if": {
+                        "$and": [
+                          {
+                            "$eq": [
+                              "$buy_or_sell",
+                              "BUY"
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              "$call_or_put",
+                              "PUT"
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              "$open_or_close",
+                              "CLOSE"
+                            ]
+                          }
+                        ]
+                      },
+                      "then": "BEAR",
+                      "else": {
+                        "$cond": {
+                          "if": {
+                            "$and": [
+                              {
+                                "$eq": [
+                                  "$buy_or_sell",
+                                  "SELL"
+                                ]
+                              },
+                              {
+                                "$eq": [
+                                  "$call_or_put",
+                                  "CALL"
+                                ]
+                              },
+                              {
+                                "$eq": [
+                                  "$open_or_close",
+                                  "OPEN"
+                                ]
+                              }
+                            ]
+                          },
+                          "then": "BEAR",
+                          "else": {
+                            "$cond": {
+                              "if": {
+                                "$and": [
+                                  {
+                                    "$eq": [
+                                      "$buy_or_sell",
+                                      "SELL"
+                                    ]
+                                  },
+                                  {
+                                    "$eq": [
+                                      "$call_or_put",
+                                      "CALL"
+                                    ]
+                                  },
+                                  {
+                                    "$eq": [
+                                      "$open_or_close",
+                                      "CLOSE"
+                                    ]
+                                  }
+                                ]
+                              },
+                              "then": "BULL",
+                              "else": {
+                                "$cond": {
+                                  "if": {
+                                    "$and": [
+                                      {
+                                        "$eq": [
+                                          "$buy_or_sell",
+                                          "SELL"
+                                        ]
+                                      },
+                                      {
+                                        "$eq": [
+                                          "$call_or_put",
+                                          "PUT"
+                                        ]
+                                      },
+                                      {
+                                        "$eq": [
+                                          "$open_or_close",
+                                          "OPEN"
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  "then": "BULL",
+                                  "else": {
+                                    "$cond": {
+                                      "if": {
+                                        "$and": [
+                                          {
+                                            "$eq": [
+                                              "$buy_or_sell",
+                                              "SELL"
+                                            ]
+                                          },
+                                          {
+                                            "$eq": [
+                                              "$call_or_put",
+                                              "PUT"
+                                            ]
+                                          },
+                                          {
+                                            "$eq": [
+                                              "$open_or_close",
+                                              "CLOSE"
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      "then": "BULL",
+                                      "else": "NONE"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "$out":
+      {
+        "db": "trades",
+        "coll": "processed_contracts"
+      }
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "side": "BUY",
+    "type": "CALL",
+    "effect": "OPEN",
+    "perspective": "BULL",
+    "explanation ": "A BULLISH market perspective. Buying a call option indicates that you expect the price of the underlying asset to rise. You stand to profit if the asset’s price increases above the strike price, with unlimited profit potential if the price continues to surge. This strategy is ideal when you anticipate upward momentum or strong bullish movement."
+  },
+  {
+    "side": "BUY",
+    "type": "CALL",
+    "effect": "CLOSE",
+    "perspective": "BULL",
+    "explanation ": "A BULLISH market perspective. Buying a call to close a short call position (which you may have sold earlier) typically happens when the underlying asset has risen, and you want to neutralize your exposure or lock in profits. This action reflects a shift toward a more bullish outlook, either because the price has risen or because you expect it to continue increasing."
+  },
+  {
+    "side": "BUY",
+    "type": "PUT",
+    "effect": "OPEN",
+    "perspective": "BEAR",
+    "explanation ": "A BEARISH market perspective. Buying a put is a bet that the price of the underlying asset will decline. You profit from the option if the price falls below the strike price before expiration. This strategy is used when you expect downward movement or volatility in the asset's price, or anticipate a market correction or crash."
+  },
+  {
+    "side": "BUY",
+    "type": "PUT",
+    "effect": "CLOSE",
+    "perspective": "BEAR",
+    "explanation ": "A BEARISH market perspective. This typically reflects the action of closing a short put position. If you had previously sold a put expecting the price to rise, but the price has dropped, buying the put to close limits your losses or locks in profits. This position suggests that, at the time of closure, the market outlook is still bearish, or you're adjusting your position to avoid further losses."
+  },
+  {
+    "side": "SELL",
+    "type": "CALL",
+    "effect": "OPEN",
+    "perspective": "BEAR",
+    "explanation ": "A BEARISH to NEUTRAL market perspective. Selling a call option is a bet that the price of the underlying asset will not rise significantly above the strike price. If the asset’s price stays below the strike, you keep the premium you received for selling the call. This strategy works well in a flat or bearish market, where you expect little upward movement or a price decline."
+  },
+  {
+    "side": "SELL",
+    "type": "CALL",
+    "effect": "CLOSE",
+    "perspective": "BULL",
+    "explanation ": "A BULLISH market perspective. Selling a call to close a short call position typically happens when the price of the underlying asset has either stayed flat or decreased, and you're closing the position to lock in profits or prevent further losses. This suggests a shift in outlook to bullish or neutral, as you’re unwinding a bearish position that has worked out in your favor."
+  },
+  {
+    "side": "SELL",
+    "type": "PUT",
+    "effect": "OPEN",
+    "perspective": "BULL",
+    "explanation ": "A BULLISH market perspective. Selling a put is a strategy used when you expect the price of the underlying asset to rise or stay stable. You collect the premium from selling the put and profit if the asset’s price remains above the strike price. This action reflects a belief that the price will increase or that the downside risk is limited, often used in a strong bullish market or when you're comfortable buying the asset at a lower price if assigned."
+  },
+  {
+    "side": "SELL",
+    "type": "PUT",
+    "effect": "CLOSE",
+    "perspective": "BULL",
+    "explanation ": "A BULLISH market perspective. Selling a put to close a short put position generally occurs when the price has risen or stayed above the strike price. By closing the position, you lock in profits from the premium received when the option’s value has decreased. This reflects a positive view of the asset’s price action, confirming that the market outlook has been or is turning bullish."
+  }
+]

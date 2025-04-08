@@ -1,0 +1,270 @@
+[
+  {
+    "$graphLookup":
+      {
+        "from": "option_lifecycle",
+        "startWith": "$option_code",
+        "connectFromField": "option_code",
+        "connectToField": "option_code",
+        "as": "option_lifecycle"
+      }
+  },
+  {
+    "$project":
+      {
+        "orderId": "$orderId",
+        "execution_date": "$execution_date",
+        "execution_time": "$execution_time",
+        "execution_date_time_ISO":
+          "$execution_date_time_ISO",
+        "spread": "$spread",
+        "buy_or_sell": "$buy_or_sell",
+        "quantity": "$quantity",
+        "quantity_int": "$quantity_int",
+        "open_or_close": "$open_or_close",
+        "option_symbol": "$option_symbol",
+        "expiration_code": "$expiration_code",
+        "strike_price": "$strike_price",
+        "call_or_put": "$call_or_put",
+        "premium_of_leg": "$premium_of_leg",
+        "market_perspective": "$market_perspective",
+        "calculated_total_leg_premium":
+          "$calculated_total_leg_premium",
+        "option_code": "$option_code",
+        "expiration_date": "$expiration_date",
+        "expiration_date_time_ISO":
+          "$expiration_date_time_ISO",
+        "days_to_expire_from_execution":
+          "$days_to_expire_from_execution",
+        "option_lifecycle": {
+          "$sortArray": {
+            "input": "$option_lifecycle",
+            "sortBy": {
+              "execution_date_time_ISO": 1
+            }
+          }
+        }
+      }
+  },
+  {
+    "$addFields":
+      {
+        "lifecycle_length": {
+          "$cond": {
+            "if": {
+              "$isArray": "$option_lifecycle"
+            },
+            "then": {
+              "$size": "$option_lifecycle"
+            },
+            "else": 0
+          }
+        }
+      }
+  },
+  {
+    "$addFields":
+      {
+        "lifecycle_net_premium": {
+          "$sum": "$option_lifecycle.calculated_total_leg_premium"
+        }
+      }
+  },
+  {
+    "$addFields":
+      {
+        "lifecycle_open_contracts": {
+          "$sum": "$option_lifecycle.quantity_int"
+        }
+      }
+  },
+  {
+    "$lookup": {
+      "from": "us_xcme_daily",
+      "localField": "expiration_date",
+      "foreignField": "Date",
+      "as": "expiration_price" 
+    }
+  },
+  {
+    "$addFields": {
+      "expiration_price": {
+        "$cond": {
+          "if": {
+            "$gt": [
+              {
+                "$size": "$expiration_price"
+              },
+              0
+            ]
+          },
+          "then": {
+            "$toDouble": {
+              "$arrayElemAt": [
+                {
+                  "$map": {
+                    "input": "$expiration_price",
+                    "as": "item",
+                    "in": {
+                      "$replaceAll": {
+                        "input": "$$item.Close",
+                        "find": ",",
+                        "replacement": ""
+                      }
+                    }
+                  }
+                },
+                0
+              ]
+            }
+          },
+          "else": 0
+        }
+      }
+    }
+  },
+  {
+    "$addFields":
+      {
+        "opens_initial_position": {
+          "$cond": {
+            "if": {
+              "$and": [
+                {
+                  "$eq": ["$open_or_close", "OPEN"]
+                },
+                {
+                  "$eq": [
+                    "$_id",
+                    {
+                      "$arrayElemAt": [
+                        "$option_lifecycle._id",
+                        0
+                      ]
+                    }
+                  ]
+                } 
+              ]
+            },
+            "then": true,
+            "else": false 
+          }
+        }
+      }
+  },
+  {
+    "$addFields": {
+      "contract_status": {
+        "$cond": {
+          "if": {
+            "$eq": ["$lifecycle_open_contracts", 0]
+          },
+          "then": "CLOSED",
+          "else": {
+            "$cond": {
+              "if": {
+                "$gt": [
+                  "$expiration_date_time_ISO",
+                  "new Date()"
+                ]
+              },
+              "then": "OPEN",
+              "else": {
+                "$cond": {
+                  "if": {
+                    "$ne": [
+                      "$lifecycle_open_contracts",
+                      0
+                    ]
+                  },
+                  "then": {
+                    "$cond": {
+                      "if": {
+                        "$eq": [
+                          "$call_or_put",
+                          "CALL"
+                        ]
+                      },
+                      "then": {
+                        "$cond": {
+                          "if": {
+                            "$gte": [
+                              {
+                                "$toDouble":
+                                  "$expiration_price"
+                              },
+                              {
+                                "$toDouble":
+                                  "$strike_price"
+                              }
+                            ]
+                          },
+                          "then": "EXERCISED",
+                          "else": "EXPIRED"
+                        }
+                      },
+                      "else": {
+                        "$cond": {
+                          "if": {
+                            "$lte": [
+                              {
+                                "$toDouble":
+                                  "$expiration_price"
+                              },
+                              {
+                                "$toDouble":
+                                  "$strike_price"
+                              }
+                            ]
+                          },
+                          "then": "EXERCISED",
+                          "else": "EXPIRED"
+                        }
+                      }
+                    }
+                  },
+                  "else": "EXPIRED" 
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "calculated_total_leg_exercise_value": {
+        "$cond": {
+          "if": {
+            "$eq": ["$contract_status", "EXERCISED"]
+          },
+          "then": {
+            "$multiply": [
+              "$lifecycle_open_contracts",
+              50,
+              {
+                "$subtract": [
+                  {
+                    "$toDouble": "$expiration_price"
+                  },
+                  {
+                    "$toDouble": "$strike_price"
+                  }
+                ]
+              } 
+            ]
+          },
+          "else": 0 
+        }
+      }
+    }
+  },
+  {
+    "$out":
+      {
+        "db": "trades",
+        "coll": "option_legs"
+      }
+  }
+]

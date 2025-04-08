@@ -1,0 +1,137 @@
+[
+  {
+    "$lookup": {
+      "from": "orders",
+      "localField": "related_orders_by_code",
+      "foreignField": "orderId",
+      "as": "orders"
+    }
+  },
+  {
+    "$set": {
+      "orders": {
+        "$map": {
+          "input": "$orders",
+          "as": "order",
+          "in": {
+            "orderId": "$$order.orderId",
+            "execution_date_time_ISO":
+              "$$order.execution_date_time_ISO",
+            "execution_date":
+              "$$order.execution_date",
+            "execution_time":
+              "$$order.execution_time",
+            "number_of_legs":
+              "$$order.number_of_legs",
+            "option_legs": "$$order.option_legs",
+            "days_to_expire_from_execution":
+              "$$order.days_to_expire_from_execution",
+            "related_orders_by_time":
+              "$$order.related_orders_by_time",
+            "cash_change": "$$order.cash_change",
+            "contains_exercised_leg":
+              "$$order.contains_exercised_leg"
+          }
+        }
+      }
+    }
+  },
+  {
+    "$set": {
+      "orders": {
+        "$sortArray": {
+          "input": "$orders",
+          "sortBy": {
+            "execution_date_time_ISO": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "$set": {
+      "net_cash_change": {
+        "$reduce": {
+          "input": "$orders",
+          "initialValue": 0,
+          "in": {
+            "$add": [
+              "$$value",
+              "$$this.cash_change"
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "$set": {
+      "total_number_of_legs": {
+        "$reduce": {
+          "input": "$orders",
+          "initialValue": 0,
+          "in": {
+            "$add": [
+              "$$value",
+              "$$this.number_of_legs"
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "number_of_orders": {
+        "$size": "$orders"
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "opening_date_time_ISO": {
+        "$arrayElemAt": [
+          "$orders.execution_date_time_ISO",
+          0
+        ]
+      },
+      "opening_date": {
+        "$arrayElemAt": [
+          "$orders.execution_date",
+          0
+        ]
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "total_days_trade_open": {
+        "$subtract": [
+          {
+            "$arrayElemAt": [
+              "$orders.days_to_expire_from_execution",
+              0
+            ]
+          },
+          {
+            "$arrayElemAt": [
+              "$orders.days_to_expire_from_execution",
+              -1
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "calculated_total_exercise_value": 0
+    }
+  },
+  {
+    "$out": {
+      "db": "trades",
+      "coll": "trade_journeys"
+    }
+  }
+]

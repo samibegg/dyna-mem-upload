@@ -1,0 +1,336 @@
+[
+  {
+    "$match":
+      {
+        "Order Type": {
+          "$ne": ""
+        }
+      }
+  },
+  {
+    "$lookup": {
+      "from": "option_legs",
+      "localField": "orderId",
+      "foreignField": "orderId",
+      "as": "option_legs"
+    }
+  },
+  {
+    "$addFields":
+      {
+        "execution_date_time_ISO": {
+          "$dateFromString": {
+            "dateString": {
+              "$concat": [
+                {
+                  "$ifNull": ["$Exec Date", ""]
+                },
+                "T",
+                {
+                  "$ifNull": [
+                    "$Exec Time",
+                    "00:00:00"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+  },
+  {
+    "$project": {
+      "orderId": "$orderId",
+      "execution_date": "$Exec Date",
+      "execution_time": "$Exec Time",
+      "execution_date_time_ISO":
+        "$execution_date_time_ISO",
+      "expiration_code": "$Exp",
+      "option_symbol": "$Symbol",
+      "number_of_legs": {
+        "$cond": {
+          "if": {
+            "$isArray": "$option_legs"
+          },
+          "then": {
+            "$size": "$option_legs"
+          },
+          "else": 0
+        }
+      },
+      "option_legs": "$option_legs"
+    }
+  },
+  {
+    "$addFields": {
+      "afterhours_execution": {
+        "$cond": [
+          {
+            "$gte": [
+              {
+                "$hour": "$execution_date_time_ISO"
+              },
+              16 
+            ]
+          },
+          true,
+          false
+        ]
+      },
+      "premarket_execution": {
+        "$cond": [
+          {
+            "$lt": [
+              {
+                "$hour": "$execution_date_time_ISO"
+              },
+              9
+            ]
+          },
+          true,
+          {
+            "$cond": [
+              {
+                "$eq": [
+                  {
+                    "$hour":
+                      "$execution_date_time_ISO"
+                  },
+                  9
+                ]
+              },
+              {
+                "$lt": [
+                  {
+                    "$minute":
+                      "$execution_date_time_ISO"
+                  },
+                  30
+                ]
+              },
+              false
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "cash_change": {
+        "$sum": {
+          "$map": {
+            "input": "$option_legs",
+            "as": "contractObj",
+            "in": "$$contractObj.calculated_total_leg_premium"
+          }
+        }
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "days_to_expire_from_execution": {
+        "$arrayElemAt": [
+          "$option_legs.days_to_expire_from_execution",
+          0
+        ]
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "expiration_date": {
+        "$arrayElemAt": [
+          "$option_legs.expiration_date",
+          0
+        ]
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "expiration_price": {
+        "$arrayElemAt": [
+          "$option_legs.expiration_price",
+          0
+        ]
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "expiration_date_time_ISO": {
+        "$arrayElemAt": [
+          "$option_legs.expiration_date_time_ISO",
+          0
+        ]
+      }
+    }
+  },
+  {
+    "$addFields":
+      {
+        "ai_summary": "AI Summary here"
+      }
+  },
+  {
+    "$lookup":
+      {
+        "from": "orders",
+        "let": {
+          "thisDocTime": "$execution_date_time_ISO",
+          "thisDocId": "$_id"
+        },
+        "pipeline": [
+          {
+            "$match": {
+              "$expr": {
+                "$and": [
+                  {
+                    "$gte": [
+                      "$execution_date_time_ISO",
+                      {
+                        "$subtract": [
+                          "$$thisDocTime",
+                          600000
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "$lte": [
+                      "$execution_date_time_ISO",
+                      {
+                        "$add": [
+                          "$$thisDocTime",
+                          600000
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "$ne": ["$_id", "$$thisDocId"] 
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "as": "related_orders_by_time"
+      }
+  },
+  {
+    "$addFields":
+      {
+        "related_orders_by_time": {
+          "$map": {
+            "input": "$related_orders_by_time",
+            "as": "doc",
+            "in": "$$doc.orderId" 
+          }
+        }
+      }
+  },
+  {
+    "$addFields": {
+      "contains_opening_leg": {
+        "$gt": [
+          {
+            "$size": {
+              "$filter": {
+                "input": "$option_legs",
+                "as": "option_leg",
+                "cond": {
+                  "$eq": [
+                    "$$option_leg.opens_initial_position",
+                    true
+                  ]
+                }
+              }
+            }
+          },
+          0
+        ]
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "contains_exercised_leg": {
+        "$gt": [
+          {
+            "$size": {
+              "$filter": {
+                "input": "$option_legs",
+                "as": "option_leg",
+                "cond": {
+                  "$eq": [
+                    "$$option_leg.contract_status",
+                    "EXERCISED"
+                  ]
+                }
+              }
+            }
+          },
+          0
+        ]
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "contains_currently_open_leg": {
+        "$gt": [
+          {
+            "$size": {
+              "$filter": {
+                "input": "$option_legs",
+                "as": "option_leg",
+                "cond": {
+                  "$eq": [
+                    "$$option_leg.contract_status",
+                    "OPEN"
+                  ]
+                }
+              }
+            }
+          },
+          0
+        ]
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "related_orders_by_code": {
+        "$reduce": {
+          "input": {
+            "$map": {
+              "input": "$option_legs",
+              "as": "parent",
+              "in": {
+                "$map": {
+                  "input":
+                    "$$parent.option_lifecycle",
+                  "as": "sub",
+                  "in": "$$sub.orderId"
+                }
+              }
+            }
+          },
+          "initialValue": [],
+          "in": {
+            "$setUnion": ["$$value", "$$this"] 
+          }
+        }
+      }
+    }
+  },
+  {
+    "$out": {
+      "db": "trades",
+      "coll": "orders"
+    }
+  }
+]

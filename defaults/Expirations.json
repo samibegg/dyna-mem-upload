@@ -1,0 +1,218 @@
+[
+  {
+    "day_code": "1A",
+    "day_name": "Monday",
+    "day_th_month": 1,
+    "day_number": 1
+  },
+  {
+    "day_code": "1B",
+    "day_name": "Tuesday",
+    "day_th_month": 1,
+    "day_number": 2
+  },
+  {
+    "day_code": "1C",
+    "day_name": "Wednesday",
+    "day_th_month": 1,
+    "day_number": 3
+  },
+  {
+    "day_code": "1D",
+    "day_name": "Thursday",
+    "day_th_month": 1,
+    "day_number": 4
+  },
+  {
+    "day_code": "W1",
+    "day_name": "Friday",
+    "day_th_month": 1,
+    "day_number": 5
+  },
+  {
+    "day_code": "2A",
+    "day_name": "Monday",
+    "day_th_month": 2,
+    "day_number": 1
+  },
+  {
+    "day_code": "2B",
+    "day_name": "Tuesday",
+    "day_th_month": 2,
+    "day_number": 2
+  },
+  {
+    "day_code": "2C",
+    "day_name": "Wednesday",
+    "day_th_month": 2,
+    "day_number": 3
+  },
+  {
+    "day_code": "2D",
+    "day_name": "Thursday",
+    "day_th_month": 2,
+    "day_number": 4
+  },
+  {
+    "day_code": "W2",
+    "day_name": "Friday",
+    "day_th_month": 2,
+    "day_number": 5
+  },
+  {
+    "day_code": "3A",
+    "day_name": "Monday",
+    "day_th_month": 3,
+    "day_number": 1
+  },
+  {
+    "day_code": "3B",
+    "day_name": "Tuesday",
+    "day_th_month": 3,
+    "day_number": 2
+  },
+  {
+    "day_code": "3C",
+    "day_name": "Wednesday",
+    "day_th_month": 3,
+    "day_number": 3
+  },
+  {
+    "day_code": "3D",
+    "day_name": "Thursday",
+    "day_th_month": 3,
+    "day_number": 4
+  },
+  {
+    "day_code": "W3",
+    "day_name": "Friday",
+    "day_th_month": 3,
+    "day_number": 5
+  },
+  {
+    "day_code": "4A",
+    "day_name": "Monday",
+    "day_th_month": 4,
+    "day_number": 1
+  },
+  {
+    "day_code": "4B",
+    "day_name": "Tuesday",
+    "day_th_month": 4,
+    "day_number": 2
+  },
+  {
+    "day_code": "4C",
+    "day_name": "Wednesday",
+    "day_th_month": 4,
+    "day_number": 3
+  },
+  {
+    "day_code": "4D",
+    "day_name": "Thursday",
+    "day_th_month": 4,
+    "day_number": 4
+  },
+  {
+    "day_code": "W4",
+    "day_name": "Friday",
+    "day_th_month": 4,
+    "day_number": 5
+  },
+  {
+    "day_code": "5A",
+    "day_name": "Monday",
+    "day_th_month": 5,
+    "day_number": 1
+  },
+  {
+    "day_code": "5B",
+    "day_name": "Tuesday",
+    "day_th_month": 5,
+    "day_number": 2
+  },
+  {
+    "day_code": "5C",
+    "day_name": "Wednesday",
+    "day_th_month": 5,
+    "day_number": 3
+  },
+  {
+    "day_code": "5D",
+    "day_name": "Thursday",
+    "day_th_month": 5,
+    "day_number": 4
+  },
+  {
+    "day_code": "W5",
+    "day_name": "Friday",
+    "day_th_month": 5,
+    "day_number": 5
+  },
+  {
+    "day_code": "W",
+    "day_name": "EOM",
+    "day_th_month": 0,
+    "day_number": 0
+  },
+  {
+    "month_code": "F",
+    "month_name": "January",
+    "month_number": 1
+  },
+  {
+    "month_code": "G",
+    "month_name": "February",
+    "month_number": 2
+  },
+  {
+    "month_code": "H",
+    "month_name": "March",
+    "month_number": 3
+  },
+  {
+    "month_code": "J",
+    "month_name": "April",
+    "month_number": 4
+  },
+  {
+    "month_code": "K",
+    "month_name": "May",
+    "month_number": 5
+  },
+  {
+    "month_code": "M",
+    "month_name": "June",
+    "month_number": 6
+  },
+  {
+    "month_code": "N",
+    "month_name": "July",
+    "month_number": 7
+  },
+  {
+    "month_code": "Q",
+    "month_name": "August",
+    "month_number": 8
+  },
+  {
+    "month_code": "U",
+    "month_name": "September",
+    "month_number": 9
+  },
+  {
+    "month_code": "V",
+    "month_name": "October",
+    "month_number": 10
+  },
+  {
+    "month_code": "X",
+    "month_name": "November",
+    "month_number": 11
+  },
+  {
+    "month_code": "Z",
+    "month_name": "December",
+    "month_number": 12
+  }
+]

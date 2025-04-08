@@ -1,0 +1,30 @@
+[
+  {
+    "$group": {
+      "_id": {
+        "id": "$_id",
+        "option_code":
+          "$orders.option_legs.option_code",
+        "calculated_total_leg_exercise_value":
+          "$orders.option_legs.calculated_total_leg_exercise_value"
+      }
+    }
+  },
+  {
+    "$group": {
+      "_id": "$_id.id",
+      "leg_count": {
+        "$sum": 1
+      },
+      "total_exercise_value": {
+        "$sum": "$_id.calculated_total_leg_exercise_value"
+      }
+    }
+  },
+  {
+    "$out": {
+      "db": "trades",
+      "coll": "calculate_exercise_value"
+    }
+  }
+]
