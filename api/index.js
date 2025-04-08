@@ -200,7 +200,6 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
           response = await axios.get(http_uri + 'aggregations/processed_futures_options.json');
     	  await runAggregation('raw_futures_options', false, response.data); 
 
-          //console.log(http_uri + 'defaults/Expiration_Calendar.json');
           //res.json(response.data);
         } catch (error) {
           console.error(error);
@@ -210,6 +209,8 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
        // Send back the JSON response
        // res.json(accountTradeHistory);
        // res.json(futuresOptions);
+        res.render('index');
+
    })
     .on('error', (err) => {
       console.error('CSV Parsing Error:', err);
