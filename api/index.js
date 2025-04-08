@@ -165,8 +165,15 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
 
         try {
           response = await axios.get(http_uri + 'defaults/Expiration_Calendar.json');
-          //console.log(http_uri + 'defaults/Expiration_Calendar.json');
           await storeToDB(response.data, false, 'expirations_calendar');
+
+          response = await axios.get(http_uri + 'defaults/US_XCME_daily.json');
+          await storeToDB(response.data, false, 'us_xcme_daily');
+
+          response = await axios.get(http_uri + 'defaults/Market_Perspectives.json');
+          await storeToDB(response.data, false, 'market_perspectives');
+
+          //console.log(http_uri + 'defaults/Expiration_Calendar.json');
           //res.json(response.data);
         } catch (error) {
           console.error(error);
