@@ -14,7 +14,8 @@ const stream = require('stream');
 require('dotenv').config();
 
 const uri = process.env.TRADEDB_URI;
-const databaseName = 'trades'; // Replace with your db name
+const http_uri = process.env.TRADEHTTP_URI;
+const databaseName = 'trades'; 
 
 // Set up multer for memory storage (instead of storing on disk)
 const storage = multer.memoryStorage();
@@ -138,6 +139,7 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
         let execDate;
         let spread;
         let orderId;
+        let response;
 
         accountTradeHistory.forEach(contract => {
           if (contract["Exec Time"] === null) {
@@ -162,7 +164,8 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
   		await storeToDB(futuresOptions, false, 'raw_futures_options');
 
         try {
-          const response = await axios.get('https://raw.githubusercontent.com/samibegg/dyna-mem-upload/refs/heads/main/defaults/Expiration_Calendar.json');
+          response = await axios.get(http_uri + 'defaults/Expiration_Calendar.json');
+          //console.log(http_uri + 'defaults/Expiration_Calendar.json');
           await storeToDB(response.data, false, 'expirations_calendar');
           //res.json(response.data);
         } catch (error) {
