@@ -163,13 +163,13 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
 
         try {
           const response = await axios.get('https://raw.githubusercontent.com/samibegg/dyna-mem-upload/refs/heads/main/defaults/Expiration_Calendar.json');
-        	await storeToDB(response.data, true, 'expirations_calendar');
+          await storeToDB(response.data, false, 'expirations_calendar');
           //res.json(response.data);
         } catch (error) {
           console.error(error);
           res.status(500).send('Error fetching data');
         }
-
+/*
   		await storeToDB('./defaults/US_XCME_daily.json', true, 'us_xcme_daily');
  		await storeToDB('./defaults/Market_Perspectives.json', true, 'market_perspectives');
 
@@ -186,7 +186,7 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
   		await runAggregation('trade_journeys', './aggregations/trade_journey_w_exercise.json'); 
 
         await runAggregation('raw_futures_options', './aggregations/processed_futures_options.json'); 
-  
+*/  
        // Send back the JSON response
        // res.json(accountTradeHistory);
        // res.json(futuresOptions);
