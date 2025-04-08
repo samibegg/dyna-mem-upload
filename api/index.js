@@ -161,7 +161,7 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
   		await storeToDB(accountTradeHistory, false, 'raw_contracts');
   		await storeToDB(futuresOptions, false, 'raw_futures_options');
 
-  		await storeToDB('../defaults/Expiration_Calendar.json', true, 'expirations_calendar');
+  		await storeToDB('./defaults/Expiration_Calendar.json', true, 'expirations_calendar');
   		await storeToDB('../defaults/US_XCME_daily.json', true, 'us_xcme_daily');
  		await storeToDB('../defaults/Market_Perspectives.json', true, 'market_perspectives');
 
