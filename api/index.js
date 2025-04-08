@@ -164,6 +164,7 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
   		await storeToDB(futuresOptions, false, 'raw_futures_options');
 
         try {
+          // Insert static data
           response = await axios.get(http_uri + 'defaults/Expiration_Calendar.json');
           await storeToDB(response.data, false, 'expirations_calendar');
 
@@ -173,30 +174,39 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
           response = await axios.get(http_uri + 'defaults/Market_Perspectives.json');
           await storeToDB(response.data, false, 'market_perspectives');
 
+          response = await axios.get(http_uri + 'aggregations/processed_contracts.json');
+    	  await runAggregation('raw_contracts', false, response.data); 
+
+          response = await axios.get(http_uri + 'aggregations/option_lifecycle.json');
+    	  await runAggregation('processed_contracts', false, response.data); 
+
+          response = await axios.get(http_uri + 'aggregations/option_legs.json');
+    	  await runAggregation('processed_contracts', false, response.data); 
+
+          response = await axios.get(http_uri + 'aggregations/orders.json');
+    	  await runAggregation('raw_contracts', false, response.data); 
+
+  		  await mergeRelatedOrders();
+
+          response = await axios.get(http_uri + 'aggregations/trade_journeys.json');
+    	  await runAggregation('trade_journeys', false, response.data); 
+
+          response = await axios.get(http_uri + 'aggregations/calculate_exercise_value.json');
+    	  await runAggregation('trade_journeys', false, response.data); 
+
+          response = await axios.get(http_uri + 'aggregations/trade_journey_w_exercise.json');
+    	  await runAggregation('trade_journeys', false, response.data); 
+
+          response = await axios.get(http_uri + 'aggregations/processed_futures_options.json');
+    	  await runAggregation('raw_futures_options', false, response.data); 
+
           //console.log(http_uri + 'defaults/Expiration_Calendar.json');
           //res.json(response.data);
         } catch (error) {
           console.error(error);
           res.status(500).send('Error fetching data');
         }
-/*
-  		await storeToDB('./defaults/US_XCME_daily.json', true, 'us_xcme_daily');
- 		await storeToDB('./defaults/Market_Perspectives.json', true, 'market_perspectives');
 
-		// Execute transformations
-  		await runAggregation('raw_contracts', './aggregations/processed_contracts.json'); 
-		await runAggregation('processed_contracts', './aggregations/option_lifecycle.json'); 
-  		await runAggregation('processed_contracts', './aggregations/option_legs.json'); 
-  		await runAggregation('raw_contracts', './aggregations/orders.json'); 
-
-  		await mergeRelatedOrders();
-
-  		await runAggregation('trade_journeys', './aggregations/trade_journeys.json'); 
-  		await runAggregation('trade_journeys', './aggregations/calculate_exercise_value.json'); 
-  		await runAggregation('trade_journeys', './aggregations/trade_journey_w_exercise.json'); 
-
-        await runAggregation('raw_futures_options', './aggregations/processed_futures_options.json'); 
-*/  
        // Send back the JSON response
        // res.json(accountTradeHistory);
        // res.json(futuresOptions);
@@ -331,7 +341,7 @@ async function mergeRelatedOrders() {
   }
 }
 
-async function runAggregation(collectionName, aggFileName) {
+async function runAggregation(collectionName, isFile, aggName) {
   const client = new MongoClient(uri);
 
   try {
@@ -341,19 +351,19 @@ async function runAggregation(collectionName, aggFileName) {
     // Access the desired database and collection
     const db = client.db(databaseName);
     const collection = db.collection(collectionName); 
+    let result;
 
-    // Synchronously read the file
-    const data = fs.readFileSync(aggFileName, 'utf8');
+    if (isFile) {
+      // Synchronously read the file
+      const data = fs.readFileSync(aggName, 'utf8');
+      const pipeline = JSON.parse(data);
+      result = await collection.aggregate(pipeline).toArray();
+    } else {
+      result = await collection.aggregate(aggName).toArray();
+    }
     
-    // Define the aggregation pipeline
-    const pipeline = JSON.parse(data);
-    //console.log("PIPELINE: "+pipeline); // Output the contents of the file
-
-    // Perform the aggregation
-    const result = await collection.aggregate(pipeline).toArray();
-
     // Log the result
-    console.log('Aggregation ' + aggFileName + ' completed successfully');
+    console.log('Aggregation ' + aggName + ' completed successfully');
     console.log(result);
   } catch (err) {
     console.error('Error during aggregation:', err);
