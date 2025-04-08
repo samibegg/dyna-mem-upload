@@ -162,22 +162,22 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
   		await storeToDB(futuresOptions, false, 'raw_futures_options');
 
   		await storeToDB('./defaults/Expiration_Calendar.json', true, 'expirations_calendar');
-  		await storeToDB('../defaults/US_XCME_daily.json', true, 'us_xcme_daily');
- 		await storeToDB('../defaults/Market_Perspectives.json', true, 'market_perspectives');
+  		await storeToDB('./defaults/US_XCME_daily.json', true, 'us_xcme_daily');
+ 		await storeToDB('./defaults/Market_Perspectives.json', true, 'market_perspectives');
 
 		// Execute transformations
   		await runAggregation('raw_contracts', './aggregations/processed_contracts.json'); 
-		await runAggregation('processed_contracts', '../aggregations/option_lifecycle.json'); 
-  		await runAggregation('processed_contracts', '../aggregations/option_legs.json'); 
-  		await runAggregation('raw_contracts', '../aggregations/orders.json'); 
+		await runAggregation('processed_contracts', './aggregations/option_lifecycle.json'); 
+  		await runAggregation('processed_contracts', './aggregations/option_legs.json'); 
+  		await runAggregation('raw_contracts', './aggregations/orders.json'); 
 
   		await mergeRelatedOrders();
 
-  		await runAggregation('trade_journeys', '../aggregations/trade_journeys.json'); 
-  		await runAggregation('trade_journeys', '../aggregations/calculate_exercise_value.json'); 
-  		await runAggregation('trade_journeys', '../aggregations/trade_journey_w_exercise.json'); 
+  		await runAggregation('trade_journeys', './aggregations/trade_journeys.json'); 
+  		await runAggregation('trade_journeys', './aggregations/calculate_exercise_value.json'); 
+  		await runAggregation('trade_journeys', './aggregations/trade_journey_w_exercise.json'); 
 
-        await runAggregation('raw_futures_options', '../aggregations/processed_futures_options.json'); 
+        await runAggregation('raw_futures_options', './aggregations/processed_futures_options.json'); 
   
        // Send back the JSON response
        // res.json(accountTradeHistory);
