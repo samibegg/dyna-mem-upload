@@ -166,7 +166,7 @@ app.post('/upload', upload.single('csvfile'), (req, res) => {
  		await storeToDB('../defaults/Market_Perspectives.json', true, 'market_perspectives');
 
 		// Execute transformations
-  		await runAggregation('raw_contracts', '../aggregations/processed_contracts.json'); 
+  		await runAggregation('raw_contracts', './aggregations/processed_contracts.json'); 
 		await runAggregation('processed_contracts', '../aggregations/option_lifecycle.json'); 
   		await runAggregation('processed_contracts', '../aggregations/option_legs.json'); 
   		await runAggregation('raw_contracts', '../aggregations/orders.json'); 
