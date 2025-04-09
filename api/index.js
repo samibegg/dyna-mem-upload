@@ -230,7 +230,7 @@ function generateRandomString(length = 20) {
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running on Vercel`);
 });
 
 async function storeToDB(jsonObj, isFile, collectionName){
@@ -375,7 +375,7 @@ async function runAggregation(collectionName, isFile, aggName) {
 }
 
 async function resetDB(){  
-  const client = new MongoClient(uri, {useUnifiedTopology: true});
+  const client = new MongoClient(uri);
 
   try {
     await client.connect();
