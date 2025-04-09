@@ -6,26 +6,45 @@
   <title>CSV File Upload</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f4;
+      background-color: #1f1f1f;
+      color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      flex-direction: column;
     }
     .container {
-      background-color: white;
-      padding: 20px;
+      background-color: #2a2a2a;
+      padding: 30px;
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
       width: 100%;
       max-width: 400px;
       text-align: center;
     }
+    h2 {
+      color: #fff;
+      font-size: 24px;
+    }
+    a {
+      color: #4CAF50;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
     input[type="file"] {
+      background-color: #333;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 10px;
+      border-radius: 5px;
       margin: 10px 0;
+      width: 100%;
     }
     button {
       background-color: #4CAF50;
@@ -35,29 +54,120 @@
       cursor: pointer;
       border-radius: 5px;
       font-size: 16px;
+      margin-top: 15px;
     }
     button:hover {
       background-color: #45a049;
+    }
+    button:disabled {
+      background-color: #666;
+      cursor: not-allowed;
+    }
+    .progress-container {
+      margin-top: 20px;
+      width: 100%;
+      background-color: #444;
+      border-radius: 5px;
+      height: 20px;
+    }
+    .progress-bar {
+      height: 100%;
+      background-color: #4CAF50;
+      width: 0%;
+      border-radius: 5px;
+    }
+    .reset-button {
+      background-color: #e74c3c;
+    }
+    .reset-button:hover {
+      background-color: #c0392b;
+    }
+    .upload-complete {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: black;
+      color: white;
+      border-radius: 5px;
+      display: none;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h2><a href="/">Upload</a></h2>
+    <h2><a href="/">Upload CSV</a></h2>
 
-    <form action="/upload" method="POST" enctype="multipart/form-data">
+    <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
       <input type="file" name="csvfile" accept=".csv" required />
       <br/>
-      <button type="submit">Upload CSV</button>
+      <button type="submit" id="upload-btn">Upload CSV</button>
     </form>
 
-    <form action="/reset" method="GET">
-      <button type="submit">Reset</button>
+    <div class="progress-container" id="progress-container" style="display: none;">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div id="upload-complete" class="upload-complete">
+      Upload Complete
+    </div>
+
+    <form action="/reset" method="GET" style="margin-top: 20px;">
+      <button type="submit" class="reset-button">Reset</button>
     </form>
 
   </div>
 
+  <script>
+    const uploadForm = document.getElementById('upload-form');
+    const uploadButton = document.getElementById('upload-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const uploadComplete = document.getElementById('upload-complete');
+
+    uploadForm.addEventListener('submit', function (event) {
+      event.preventDefault(); // Prevent default form submission
+      
+      const formData = new FormData(uploadForm);
+      
+      // Show progress bar and disable the upload button
+      progressContainer.style.display = 'block';
+      uploadButton.disabled = true;
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/upload', true);
+
+      // Update progress bar
+      xhr.upload.addEventListener('progress', function (e) {
+        if (e.lengthComputable) {
+          const percentage = (e.loaded / e.total) * 100;
+
+          // Slow down the progress bar for visual effect
+          let slowPercentage = percentage < 100 ? percentage * 0.05 : 100;
+          progressBar.style.width = slowPercentage + '%';
+        }
+      });
+
+      // Handle complete event
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          // Show upload complete message
+          uploadComplete.style.display = 'block';
+        } else {
+          alert('Upload failed');
+        }
+
+        // Reset progress bar and button state
+        setTimeout(() => {
+          progressContainer.style.display = 'none';
+          progressBar.style.width = '0%';
+          uploadButton.disabled = false;
+        }, 1000); // Delay for a smooth transition
+      };
+
+      // Send the request
+      xhr.send(formData);
+    });
+  </script>
+
 </body>
 </html>
-
