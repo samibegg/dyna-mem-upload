@@ -3,7 +3,7 @@
     "$match":
       {
         "Order Type": {
-          "$ne": ""
+          "$ne": null
         }
       }
   },
